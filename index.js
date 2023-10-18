@@ -36,6 +36,7 @@ async function run() {
       const result =await cursor.toArray();
       res.send(result)
     })
+   
 
     app.post('/products', async (req, res) => {
       const newProduct = req.body
