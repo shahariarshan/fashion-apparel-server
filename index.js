@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.hoyasjp.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -31,17 +31,48 @@ async function run() {
     const productCollection = client.db('ProductsBd').collection('Products')
 
 
-    app.get('/products', async (req, res) =>{
+    app.get('/products', async (req, res) => {
       const cursor = productCollection.find()
-      const result =await cursor.toArray();
+      const result = await cursor.toArray();
       res.send(result)
     })
-   
+
+    app.get('/products/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+
+      console.log(query);
+      const result = await productCollection.findOne(query)
+      res.send(result)
+    })
+
 
     app.post('/products', async (req, res) => {
       const newProduct = req.body
       console.log(newProduct)
       const result = await productCollection.insertOne(newProduct)
+      res.send(result)
+
+    })
+
+    app.put('/products/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true }
+
+      const updateProduct = req.body
+      const product = {
+        $set: {
+          name: updateProduct.name,
+          bName: updateProduct.bName,
+          type: updateProduct.type,
+          description: updateProduct.description,
+          price: updateProduct.price,
+          rating: updateProduct.rating,
+          photo: updateProduct.photo,
+        }
+      }
+      const result = await productCollection.updateOne(filter, product, options)
       res.send(result)
 
     })
